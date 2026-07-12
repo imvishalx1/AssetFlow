@@ -2,12 +2,20 @@ import axios from 'axios';
 import { env } from '../env';
 import { tokenStore } from '../../auth/tokenStore';
 import { refreshClient } from './refreshClient';
+import { isMockMode } from '../../auth/mock';
+import { mockAdapter } from './mockAdapter';
 
 export const client = axios.create({
   baseURL: `${env.VITE_API_BASE_URL}/api/v1`,
   withCredentials: true,
   timeout: 10_000,
 });
+
+// In mock mode the entire API is served from in-memory seed data so the UI can
+// be demoed without a running backend / database.
+if (isMockMode) {
+  client.defaults.adapter = mockAdapter;
+}
 
 client.interceptors.request.use((config) => {
   const token = tokenStore.get();

@@ -1,56 +1,80 @@
-import { Outlet, useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../auth/AuthProvider';
-import { isMockMode } from '../auth/mock';
+import { useState, useEffect } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+import { Sidebar } from './Sidebar';
+import { Topbar } from './Topbar';
+import { ToastViewport } from './Toast';
 
-const MGMT = ['Admin', 'Asset Manager', 'Department Head'];
-const ADMIN_MGR = ['Admin', 'Asset Manager'];
+const STORAGE_KEY = 'af_sidebar_collapsed';
 
-const NAV: { to: string; label: string; roles?: string[] }[] = [
-  { to: '/dashboard', label: 'Dashboard' },
-  { to: '/org-setup', label: 'Org Setup', roles: ['Admin'] },
-  { to: '/assets', label: 'Assets', roles: MGMT },
-  { to: '/allocations', label: 'Allocations', roles: MGMT },
-  { to: '/bookings', label: 'Bookings' },
-  { to: '/maintenance', label: 'Maintenance' },
-  { to: '/audits', label: 'Audits', roles: ADMIN_MGR },
-  { to: '/reports', label: 'Reports', roles: MGMT },
-  { to: '/activity', label: 'Activity', roles: ADMIN_MGR },
-];
+function initialCollapsed(): boolean {
+  if (typeof window === 'undefined') return false;
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved !== null) return saved === 'true';
+  // Collapsed rail by default under 1024px (still expandable via hamburger).
+  return window.innerWidth < 1024;
+}
 
 export function Layout() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth < 768,
+  );
+  const [collapsed, setCollapsed] = useState<boolean>(initialCollapsed);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
+  // Rail mode = collapsed AND not on the mobile overlay.
+  const rail = collapsed && !isMobile;
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  // Close the mobile drawer whenever the route changes.
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [pathname]);
+
+  const onMenu = () => {
+    if (isMobile) {
+      setDrawerOpen((o) => !o);
+      return;
+    }
+    setCollapsed((c) => {
+      const next = !c;
+      try {
+        localStorage.setItem(STORAGE_KEY, String(next));
+      } catch {
+        /* storage unavailable — non-fatal */
+      }
+      return next;
+    });
   };
 
-  const visibleNav = NAV.filter((item) => !item.roles || (user ? item.roles.includes(user.role) : false));
+  const menuExpanded = isMobile ? drawerOpen : !rail;
+  const rotated = isMobile ? drawerOpen : rail;
 
   return (
     <div className="layout">
-      <aside className="sidebar">
-        <div className="brand">AssetFlow</div>
-        <nav>
-          {visibleNav.map((item) => (
-            <Link key={item.to} to={item.to}>
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      </aside>
-      <main className="main">
-        <header className="topbar">
-          <span>{user?.name}</span>
-          <span className="role-badge">{user?.role}</span>
-          {isMockMode && <span className="demo-badge">DEMO</span>}
-          <button onClick={handleLogout}>Logout</button>
-        </header>
-        <section className="content">
+      <Sidebar
+        rail={rail}
+        mobile={isMobile}
+        open={drawerOpen}
+        onNavigate={() => setDrawerOpen(false)}
+        onMenu={onMenu}
+        showToggle={!isMobile}
+      />
+      {isMobile && drawerOpen && (
+        <div className="drawer-backdrop" onClick={() => setDrawerOpen(false)} />
+      )}
+      <div className="main">
+        <Topbar onMenu={onMenu} showToggle={isMobile} menuExpanded={menuExpanded} rotated={rotated} />
+        <main className="content">
           <Outlet />
-        </section>
-      </main>
+        </main>
+      </div>
+      <ToastViewport />
     </div>
   );
 }
