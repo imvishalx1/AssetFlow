@@ -13,12 +13,9 @@
     "lint": "npm run lint -w frontend",
     "typecheck": "tsc --noEmit -p frontend/tsconfig.json",
     "audit": "npm audit --audit-level=high",
-    "seed": "echo 'Legacy MongoDB seed — use Firebase Functions promoteUser instead'"
+    "seed": "echo 'Use PATCH /users/:id/promote (Admin-only) to promote users'"
   },
   "devDependencies": {
     "concurrently": "^10.0.3"
-  },
-  "dependencies": {
-    "firebase": "^12.16.0"
   }
 }
