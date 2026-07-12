@@ -15,14 +15,15 @@ async function seed(): Promise<void> {
   }
 
   const passwordHash = await hashPassword(env.SEED_ADMIN_PASSWORD);
-  const admin = await User.create({
+  await User.create({
     name: env.SEED_ADMIN_NAME,
     email,
     passwordHash,
     role: 'Admin',
   });
 
-  logger.info('✅ Seed admin created', { email: admin.email, id: String(admin._id) });
+  // Avoid logging the administrator's email or database id (Finding: do not log seed admin identity).
+  logger.info('✅ Seed admin created');
   process.exit(0);
 }
 

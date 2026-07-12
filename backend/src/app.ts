@@ -8,21 +8,11 @@ import * as Sentry from '@sentry/node';
 import { env } from './config/env';
 import { errorHandler } from './middleware/errorHandler';
 import apiRouter from './routes';
+import { parseCookies } from './utils/cookies';
 
 // Minimal cookie parser (avoids extra dependency) — populates req.cookies.
 function cookieParser(req: Request, _res: Response, next: NextFunction): void {
-  const header = req.headers.cookie;
-  const cookies: Record<string, string> = {};
-  if (header) {
-    header.split(';').forEach((pair) => {
-      const idx = pair.indexOf('=');
-      if (idx > -1) {
-        const k = pair.slice(0, idx).trim();
-        const v = pair.slice(idx + 1).trim();
-        if (k) cookies[k] = decodeURIComponent(v);
-      }
-    });
-  }
+  const cookies = req.headers.cookie ? parseCookies(req.headers.cookie) : {};
   (req as Request & { cookies: Record<string, string> }).cookies = cookies;
   next();
 }

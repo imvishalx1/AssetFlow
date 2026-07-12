@@ -29,4 +29,11 @@ const allocationSchema = new Schema<IAllocation>(
   { timestamps: true },
 );
 
+// Partial unique index: at most one ACTIVE allocation per asset.
+// Closes the TOCTOU race on the double-allocation check at the DB layer.
+allocationSchema.index(
+  { assetId: 1 },
+  { unique: true, partialFilterExpression: { status: 'Active' } },
+);
+
 export const Allocation = mongoose.model<IAllocation>('Allocation', allocationSchema);

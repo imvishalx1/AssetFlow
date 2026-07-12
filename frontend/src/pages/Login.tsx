@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 
 export function Login() {
@@ -28,12 +28,16 @@ export function Login() {
     <div className="auth-card">
       <h1>AssetFlow</h1>
       <form onSubmit={onSubmit}>
-        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        <label htmlFor="login-email">Email</label>
+        <input id="login-email" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+
+        <label htmlFor="login-password">Password</label>
+        <input id="login-password" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+
         {error && <p className="error">{error}</p>}
         <button type="submit" disabled={busy}>Sign in</button>
       </form>
-      <a href="/signup">Need an account? Sign up</a>
+      <Link to="/signup">Need an account? Sign up</Link>
     </div>
   );
 }

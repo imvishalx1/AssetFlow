@@ -2,16 +2,22 @@ import { Asset } from '../modules/assets/asset.model';
 import { Allocation } from '../modules/allocations/allocation.model';
 import { Booking } from '../modules/bookings/booking.model';
 import { AppError } from '../utils/AppError';
+import mongoose from 'mongoose';
 
 // ── Conflict Engine 1: Double-Allocation Prevention (Pillar 2a) ──────────
 // If the asset is already Allocated, block and surface the current holder so
 // the UI can offer a Transfer Request instead.
-export async function checkAllocationConflict(assetId: string): Promise<void> {
-  const asset = await Asset.findById(assetId);
+export async function checkAllocationConflict(
+  assetId: string,
+  session?: mongoose.ClientSession,
+): Promise<void> {
+  const asset = await Asset.findById(assetId).session(session ?? null);
   if (!asset) throw new AppError(404, 'NOT_FOUND', 'Asset not found');
 
   if (asset.status === 'Allocated') {
-    const active = await Allocation.findOne({ assetId, status: 'Active' }).populate('userId', 'name email');
+    const active = await Allocation.findOne({ assetId, status: 'Active' })
+      .populate('userId', 'name email')
+      .session(session ?? null);
     const holderName = (active?.userId as { name?: string } | undefined)?.name ?? 'another user';
     throw new AppError(
       409,
@@ -31,6 +37,7 @@ export async function validateBookingOverlap(
   startTime: Date | string,
   endTime: Date | string,
   ignoreBookingId?: string,
+  session?: mongoose.ClientSession,
 ): Promise<void> {
   const start = new Date(startTime);
   const end = new Date(endTime);
@@ -50,14 +57,17 @@ export async function validateBookingOverlap(
   };
   if (ignoreBookingId) query._id = { $ne: ignoreBookingId };
 
-  const overlapping = await Booking.findOne(query);
+  const overlapping = await Booking.findOne(query).session(session ?? null);
   if (overlapping) {
     throw new AppError(
       409,
       'BOOKING_OVERLAP',
       'This shared resource is already booked for overlapping times.',
       undefined,
-      { conflictWindow: { start: overlapping.startTime, end: overlapping.endTime } },
+      {
+        requested: { start, end },
+        conflicting: { start: overlapping.startTime, end: overlapping.endTime },
+      },
     );
   }
 }

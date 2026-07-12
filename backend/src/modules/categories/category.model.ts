@@ -21,4 +21,10 @@ const categorySchema = new Schema<ICategory>(
   { timestamps: true },
 );
 
+// Enforce unique custom-field keys within a category.
+categorySchema.path('customFields').validate(function (value: { key: string }[]) {
+  const keys = (value || []).map((f) => f.key);
+  return new Set(keys).size === keys.length;
+}, 'Custom field keys must be unique within a category');
+
 export const Category = mongoose.model<ICategory>('Category', categorySchema);

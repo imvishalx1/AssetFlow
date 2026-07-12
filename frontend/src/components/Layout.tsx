@@ -1,4 +1,4 @@
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { isMockMode } from '../auth/mock';
 
@@ -29,9 +29,9 @@ export function Layout() {
         <div className="brand">AssetFlow</div>
         <nav>
           {NAV.map((item) => (
-            <a key={item.to} href={item.to}>
+            <Link key={item.to} to={item.to}>
               {item.label}
-            </a>
+            </Link>
           ))}
         </nav>
       </aside>

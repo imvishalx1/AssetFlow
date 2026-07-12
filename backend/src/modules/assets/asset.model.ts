@@ -27,7 +27,12 @@ const assetSchema = new Schema<IAsset>(
     categoryId: { type: Schema.Types.ObjectId, ref: 'Category', required: true },
     serialNumber: { type: String },
     acquisitionDate: { type: Date },
-    acquisitionCost: { type: Number, default: 0, min: 0 }, // integer, analytics only (Pillar 4)
+    acquisitionCost: {
+      type: Number,
+      default: 0,
+      min: 0,
+      validate: { validator: Number.isInteger, message: 'Acquisition cost must be an integer' },
+    }, // integer, analytics only (Pillar 4)
     condition: { type: String, enum: ['New', 'Good', 'Fair', 'Poor'], default: 'New' },
     location: { type: String },
     status: { type: String, enum: ASSET_STATUSES, default: 'Available' },
@@ -45,7 +50,6 @@ const assetSchema = new Schema<IAsset>(
   { timestamps: true },
 );
 
-assetSchema.index({ tag: 1 });
 assetSchema.index({ tagNumber: -1 });
 
 export const Asset = mongoose.model<IAsset>('Asset', assetSchema);

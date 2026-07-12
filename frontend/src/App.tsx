@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { RequireAuth } from './components/RequireAuth';
+import { RoleGuard } from './components/RoleGuard';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
@@ -12,6 +13,10 @@ import { Maintenance } from './pages/Maintenance';
 import { Audits } from './pages/Audits';
 import { Reports } from './pages/Reports';
 import { Activity } from './pages/Activity';
+
+// Management roles per the blueprint (Pillar 1: no self-elevation).
+const MGMT = ['Admin', 'Asset Manager', 'Department Head'] as const;
+const ADMIN_MGR = ['Admin', 'Asset Manager'] as const;
 
 export default function App() {
   return (
@@ -26,14 +31,57 @@ export default function App() {
         }
       >
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/org-setup" element={<OrgSetup />} />
-        <Route path="/assets" element={<Assets />} />
-        <Route path="/allocations" element={<Allocations />} />
+        {/* Org Setup is Admin-only (Pillar 1). */}
+        <Route
+          path="/org-setup"
+          element={
+            <RoleGuard allowedRoles={['Admin']}>
+              <OrgSetup />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/assets"
+          element={
+            <RoleGuard allowedRoles={[...MGMT]}>
+              <Assets />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/allocations"
+          element={
+            <RoleGuard allowedRoles={[...MGMT]}>
+              <Allocations />
+            </RoleGuard>
+          }
+        />
         <Route path="/bookings" element={<Bookings />} />
         <Route path="/maintenance" element={<Maintenance />} />
-        <Route path="/audits" element={<Audits />} />
-        <Route path="/reports" element={<Reports />} />
-        <Route path="/activity" element={<Activity />} />
+        <Route
+          path="/audits"
+          element={
+            <RoleGuard allowedRoles={[...ADMIN_MGR]}>
+              <Audits />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <RoleGuard allowedRoles={[...MGMT]}>
+              <Reports />
+            </RoleGuard>
+          }
+        />
+        <Route
+          path="/activity"
+          element={
+            <RoleGuard allowedRoles={[...ADMIN_MGR]}>
+              <Activity />
+            </RoleGuard>
+          }
+        />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

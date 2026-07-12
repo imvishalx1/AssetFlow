@@ -15,7 +15,6 @@ import {
   compareToken,
 } from './auth.service';
 import { setRefreshCookie, clearRefreshCookie } from '../../utils/cookies';
-import { signupSchema, loginSchema } from './auth.schema';
 
 function toSafeUser(u: IUser) {
   return {
@@ -37,6 +36,17 @@ function tokenPayload(u: IUser) {
   };
 }
 
+// Issues a refresh token, stores only its bcrypt hash, and sets the HttpOnly cookie.
+async function issueRefreshSession(res: Response, userId: string): Promise<string> {
+  const refreshToken = signRefreshToken({ userId });
+  const user = await User.findById(userId);
+  if (!user) throw new AppError(404, 'NOT_FOUND', 'User not found');
+  user.refreshTokenHash = await hashToken(refreshToken);
+  await user.save();
+  setRefreshCookie(res, refreshToken);
+  return refreshToken;
+}
+
 // POST /api/v1/auth/signup  — Pillar 1: Employee-only, no self-elevation.
 export const signup = asyncHandler(async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
@@ -56,7 +66,8 @@ export const signup = asyncHandler(async (req: Request, res: Response) => {
   const passwordHash = await hashPassword(password);
   const user = await User.create({ name, email: normalizedEmail, passwordHash, role: 'Employee' });
 
-  await logActivity('USER_SIGNUP', `user:${user._id}`, user._id, { email: user.email });
+  await issueRefreshSession(res, String(user._id)); // establish refresh session on signup
+  await logActivity('USER_SIGNUP', `user:${user._id}`, user._id, { email: normalizedEmail });
 
   const accessToken = signAccessToken(tokenPayload(user));
   res.status(201).json({ success: true, data: { user: toSafeUser(user), accessToken } });
@@ -73,18 +84,14 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   const ok = await comparePassword(password, user.passwordHash);
   if (!ok) throw new AppError(401, 'INVALID_CREDENTIALS', 'Invalid email or password');
 
-  const accessToken = signAccessToken(tokenPayload(user));
-  const refreshToken = signRefreshToken({ userId: String(user._id) });
-  user.refreshTokenHash = await hashToken(refreshToken);
-  await user.save();
-
-  setRefreshCookie(res, refreshToken);
+  await issueRefreshSession(res, String(user._id));
   await logActivity('USER_LOGIN', `user:${user._id}`, user._id);
 
+  const accessToken = signAccessToken(tokenPayload(user));
   res.json({ success: true, data: { user: toSafeUser(user), accessToken } });
 });
 
-// POST /api/v1/auth/refresh
+// POST /api/v1/auth/refresh — atomic conditional rotation (revokes only current session).
 export const refresh = asyncHandler(async (req: Request, res: Response) => {
   const token = req.cookies?.refreshToken;
   if (!token) throw new AppError(401, 'UNAUTHORIZED', 'Missing refresh token');
@@ -102,12 +109,20 @@ export const refresh = asyncHandler(async (req: Request, res: Response) => {
   const ok = await compareToken(token, user.refreshTokenHash);
   if (!ok) throw new AppError(401, 'UNAUTHORIZED', 'Invalid refresh token');
 
-  const accessToken = signAccessToken(tokenPayload(user));
   const newRefresh = signRefreshToken({ userId: String(user._id) });
-  user.refreshTokenHash = await hashToken(newRefresh);
-  await user.save();
+  const newHash = await hashToken(newRefresh);
+
+  // Only rotate if the presented token still matches the stored hash (no lost updates).
+  const updated = await User.updateOne(
+    { _id: user._id, refreshTokenHash: user.refreshTokenHash },
+    { refreshTokenHash: newHash },
+  );
+  if (updated.matchedCount === 0) {
+    throw new AppError(401, 'UNAUTHORIZED', 'Session invalidated');
+  }
 
   setRefreshCookie(res, newRefresh);
+  const accessToken = signAccessToken(tokenPayload(user));
   res.json({ success: true, data: { accessToken } });
 });
 

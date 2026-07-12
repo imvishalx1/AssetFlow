@@ -1,5 +1,4 @@
-# AssetFlow: Enterprise Asset & Resource Management System[cite: 1]
-**Hackathon Project Blueprint & Implementation Roadmap**
+# AssetFlow: Enterprise Asset & Resource Management System**Hackathon Project Blueprint & Implementation Roadmap**
 
 ---
 

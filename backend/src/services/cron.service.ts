@@ -1,8 +1,6 @@
 import * as cron from 'node-cron';
 import logger from '../config/logger';
 import { Allocation } from '../modules/allocations/allocation.model';
-import { User } from '../modules/users/user.model';
-import { Asset } from '../modules/assets/asset.model';
 import { sendEmail } from './email.service';
 
 // Scheduled overdue-allocation reminders. (Pillar: real cron kept per plan.)

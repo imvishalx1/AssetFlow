@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { client } from '../lib/api/client';
 import { tokenStore } from '../auth/tokenStore';
 import { useAuth } from '../auth/AuthProvider';
@@ -40,13 +40,19 @@ export function Signup() {
     <div className="auth-card">
       <h1>Create your account</h1>
       <form onSubmit={onSubmit}>
-        <input placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} required />
-        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        <input type="password" placeholder="Password (min 8 chars)" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        <label htmlFor="signup-name">Full name</label>
+        <input id="signup-name" placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} required />
+
+        <label htmlFor="signup-email">Email</label>
+        <input id="signup-email" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+
+        <label htmlFor="signup-password">Password</label>
+        <input id="signup-password" type="password" placeholder="Password (min 8 chars)" value={password} onChange={(e) => setPassword(e.target.value)} required />
+
         {error && <p className="error">{error}</p>}
         <button type="submit" disabled={busy}>Sign up</button>
       </form>
-      <a href="/login">Already have an account? Sign in</a>
+      <Link to="/login">Already have an account? Sign in</Link>
     </div>
   );
 }

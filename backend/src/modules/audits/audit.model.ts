@@ -42,4 +42,9 @@ const auditSchema = new Schema<IAuditCycle>(
   { timestamps: true },
 );
 
+// Reject inverted date ranges (Finding: reject inverted audit date ranges).
+auditSchema.path('dateRange').validate(function (value: { start: Date; end: Date }) {
+  return new Date(value.end).getTime() >= new Date(value.start).getTime();
+}, 'Audit end date must be on or after the start date');
+
 export const AuditCycle = mongoose.model<IAuditCycle>('AuditCycle', auditSchema);

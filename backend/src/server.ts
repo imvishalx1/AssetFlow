@@ -10,6 +10,10 @@ async function start(): Promise<void> {
   startCronJobs();
   const app = createApp();
   const server = createServer(app);
+  server.on('error', (err: NodeJS.ErrnoException) => {
+    logger.error('Server failed to start', { error: err.message, code: err.code });
+    process.exit(1);
+  });
   server.listen(env.PORT, () => {
     logger.info(`🚀 AssetFlow API listening on port ${env.PORT}`);
   });
