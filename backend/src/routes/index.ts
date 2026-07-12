@@ -1,14 +1,21 @@
 import { Router } from 'express';
+import { requireAuth } from '../middleware/requireAuth';
 import authRoutes from '../modules/auth/auth.routes';
+import analyticsRoutes from '../modules/analytics/analytics.routes';
+import activityLogRoutes from '../modules/activityLogs/activityLog.routes';
 
 const router = Router();
 
-// Auth routes work immediately (Prisma + JWT).
+// Public auth routes — no authentication required.
 router.use('/auth', authRoutes);
 
-// Other domain routes are being ported from Mongoose → Prisma.
-// They will be re-registered here as each module is completed.
-//
+// All remaining routes require a valid access token.
+router.use(requireAuth);
+
+router.use('/analytics', analyticsRoutes);
+router.use('/activity-logs', activityLogRoutes);
+
+// Domain routes being ported to Prisma next:
 // import departmentRoutes from '../modules/departments/department.routes';
 // import categoryRoutes from '../modules/categories/category.routes';
 // import userRoutes from '../modules/users/user.routes';
@@ -17,9 +24,6 @@ router.use('/auth', authRoutes);
 // import bookingRoutes from '../modules/bookings/booking.routes';
 // import auditRoutes from '../modules/audits/audit.routes';
 // import maintenanceRoutes from '../modules/maintenance/maintenance.routes';
-// import analyticsRoutes from '../modules/analytics/analytics.routes';
-// import activityLogRoutes from '../modules/activityLogs/activityLog.routes';
-//
 // router.use('/departments', departmentRoutes);
 // router.use('/categories', categoryRoutes);
 // router.use('/users', userRoutes);
@@ -29,7 +33,5 @@ router.use('/auth', authRoutes);
 // router.use('/bookings', bookingRoutes);
 // router.use('/audits', auditRoutes);
 // router.use('/maintenance', maintenanceRoutes);
-// router.use('/analytics', analyticsRoutes);
-// router.use('/activity-logs', activityLogRoutes);
 
 export default router;

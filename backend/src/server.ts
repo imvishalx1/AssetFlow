@@ -3,7 +3,6 @@ import { Server as SocketServer } from 'socket.io';
 import { createApp } from './app';
 import { connectDB } from './config/db';
 import { env } from './config/env';
-import { startCronJobs } from './services/cron.service';
 import logger from './config/logger';
 
 export function initSockets(server: import('http').Server): SocketServer {
@@ -30,7 +29,6 @@ export function initSockets(server: import('http').Server): SocketServer {
 
 async function start(): Promise<void> {
   await connectDB();
-  startCronJobs();
   const app = createApp();
   const server = createServer(app);
   const io = initSockets(server);

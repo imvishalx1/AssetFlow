@@ -5,7 +5,7 @@ import { getSummary } from './analytics.controller';
 
 const router = Router();
 
-router.use(roleGuard('Admin', 'AssetManager', 'DepartmentHead'));
+router.use(roleGuard('Admin', 'AssetManager', 'DepartmentHead', 'Employee'));
 router.get('/summary', asyncHandler(getSummary));
 
 export default router;

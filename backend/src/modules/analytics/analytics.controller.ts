@@ -1,35 +1,34 @@
 import { Request, Response } from 'express';
-import { Asset } from '../assets/asset.model';
-import { Allocation } from '../allocations/allocation.model';
-import { Booking } from '../bookings/booking.model';
-import { Maintenance } from '../maintenance/maintenance.model';
+import { prisma } from '../../lib/prisma';
 import { asyncHandler } from '../../utils/asyncHandler';
 
-// Read-only aggregate dashboard. All figures derive from the integer
-// acquisitionCost field (analytics/ranking only — Pillar 4: no accounting).
 export const getSummary = asyncHandler(async (_req: Request, res: Response) => {
-  const [totalAssets, byStatus, byCondition, activeAllocations, upcomingBookings, openMaintenance, overdueAllocations] =
+  const now = new Date();
+
+  const [totalAssets, byStatus, byCondition, activeAllocations, upcomingBookings, openMaintenance, overdueAllocations, costAgg] =
     await Promise.all([
-      Asset.countDocuments(),
-      Asset.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
-      Asset.aggregate([{ $group: { _id: '$condition', count: { $sum: 1 } } }]),
-      Allocation.countDocuments({ status: 'Active' }),
-      Booking.countDocuments({ status: { $in: ['Upcoming', 'Ongoing'] } }),
-      Maintenance.countDocuments({
-        status: { $in: ['Pending', 'Approved', 'Technician Assigned', 'In Progress'] },
+      prisma.asset.count(),
+      prisma.asset.groupBy({ by: ['status'], _count: true }),
+      prisma.asset.groupBy({ by: ['condition'], _count: true }),
+      prisma.allocation.count({ where: { status: 'Active' } }),
+      prisma.booking.count({ where: { status: { in: ['Upcoming', 'Ongoing'] } } }),
+      prisma.maintenanceRequest.count({
+        where: { status: { in: ['Pending', 'Approved', 'TechnicianAssigned', 'InProgress'] } },
       }),
-      Allocation.countDocuments({ status: 'Active', expectedReturnDate: { $lt: new Date() } }),
+      prisma.allocation.count({
+        where: { status: 'Active', expectedReturnDate: { lt: now } },
+      }),
+      prisma.asset.aggregate({ _sum: { acquisitionCost: true } }),
     ]);
 
-  const costAgg = await Asset.aggregate([{ $group: { _id: null, sum: { $sum: '$acquisitionCost' } } }]);
-  const totalAcquisitionCost = costAgg[0]?.sum ?? 0;
+  const totalAcquisitionCost = costAgg._sum.acquisitionCost ?? 0;
 
   res.json({
     success: true,
     data: {
       totalAssets,
-      byStatus,
-      byCondition,
+      byStatus: byStatus.map((s) => ({ _id: s.status, count: s._count })),
+      byCondition: byCondition.map((c) => ({ _id: c.condition, count: c._count })),
       activeAllocations,
       upcomingBookings,
       openMaintenance,
