@@ -15,10 +15,14 @@ export async function registerAsset(
   try {
     return await session.withTransaction(async () => {
       const tag = await generateAssetTag(session);
+      // Defensive extraction of trailing digits regardless of prefix format
+      // (e.g. "AF-0001" or "FOO0001"), avoiding NaN from split('-')[1].
+      const tagMatch = tag.match(/(\d+)\s*$/);
+      const tagNumber = tagMatch ? parseInt(tagMatch[1], 10) : 0;
       const asset = new Asset({
         ...input,
         tag,
-        tagNumber: parseInt(tag.split('-')[1], 10),
+        tagNumber,
         status: 'Available',
         history: [{ type: 'Registered', by: actorId, at: new Date() }],
       });

@@ -2,16 +2,19 @@ import { Outlet, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import { isMockMode } from '../auth/mock';
 
-const NAV = [
+const MGMT = ['Admin', 'Asset Manager', 'Department Head'];
+const ADMIN_MGR = ['Admin', 'Asset Manager'];
+
+const NAV: { to: string; label: string; roles?: string[] }[] = [
   { to: '/dashboard', label: 'Dashboard' },
-  { to: '/org-setup', label: 'Org Setup' },
-  { to: '/assets', label: 'Assets' },
-  { to: '/allocations', label: 'Allocations' },
+  { to: '/org-setup', label: 'Org Setup', roles: ['Admin'] },
+  { to: '/assets', label: 'Assets', roles: MGMT },
+  { to: '/allocations', label: 'Allocations', roles: MGMT },
   { to: '/bookings', label: 'Bookings' },
   { to: '/maintenance', label: 'Maintenance' },
-  { to: '/audits', label: 'Audits' },
-  { to: '/reports', label: 'Reports' },
-  { to: '/activity', label: 'Activity' },
+  { to: '/audits', label: 'Audits', roles: ADMIN_MGR },
+  { to: '/reports', label: 'Reports', roles: MGMT },
+  { to: '/activity', label: 'Activity', roles: ADMIN_MGR },
 ];
 
 export function Layout() {
@@ -23,12 +26,14 @@ export function Layout() {
     navigate('/login');
   };
 
+  const visibleNav = NAV.filter((item) => !item.roles || (user ? item.roles.includes(user.role) : false));
+
   return (
     <div className="layout">
       <aside className="sidebar">
         <div className="brand">AssetFlow</div>
         <nav>
-          {NAV.map((item) => (
+          {visibleNav.map((item) => (
             <Link key={item.to} to={item.to}>
               {item.label}
             </Link>

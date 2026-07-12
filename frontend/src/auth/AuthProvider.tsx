@@ -25,8 +25,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     try {
-      const { data } = await client.get('/auth/me');
-      setUser(data.data.user);
+      const res = await client.get('/auth/me');
+      setUser((res as unknown as { user: AuthUser }).user);
     } catch {
       setUser(null);
       tokenStore.clear();
@@ -45,9 +45,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(MOCK_USER);
       return;
     }
-    const { data } = await client.post('/auth/login', { email, password });
-    tokenStore.set(data.data.accessToken);
-    setUser(data.data.user);
+    const res = await client.post('/auth/login', { email, password });
+    const loginData = res as unknown as { accessToken: string; user: AuthUser };
+    tokenStore.set(loginData.accessToken);
+    setUser(loginData.user);
   };
 
   const logout = async (): Promise<void> => {

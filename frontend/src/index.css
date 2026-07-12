@@ -31,3 +31,15 @@ a { color: var(--accent); }
 .demo-badge { background: #f59e0b; color: #1f2937; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; }
 .placeholder { background: var(--panel); padding: 20px; border-radius: 12px; }
 .placeholder h2 { margin-top: 0; }
+.btn { padding: 8px 14px; border: none; border-radius: 8px; background: var(--accent); color: #06283d; font-weight: 600; cursor: pointer; }
+.table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+.table th, .table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #334155; }
+.table th { color: var(--muted); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
+.table tbody tr:hover { background: #0f172a; }
+.badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.btn-ghost { padding: 8px 14px; border-radius: 8px; border: 1px solid #334155; background: transparent; color: var(--text); cursor: pointer; }
+.modal-backdrop { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.7); display: grid; place-items: center; z-index: 50; }
+.modal { background: var(--panel); padding: 24px; border-radius: 12px; max-width: 420px; width: 90%; }
+.overlap-warning { background: #7f1d1d22; border: 1px solid #ef4444; color: #fecaca; padding: 12px 16px; border-radius: 10px; margin-bottom: 12px; }
+.overlap-warning code, .modal code { background: #0f172a; padding: 1px 6px; border-radius: 4px; }
+.calendar-wrap { background: #f8fafc; color: #0f172a; border-radius: 12px; padding: 8px; }

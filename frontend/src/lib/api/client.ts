@@ -18,9 +18,11 @@ client.interceptors.request.use((config) => {
 let isRefreshing = false;
 let refreshQueue: Array<{ resolve: (t: string) => void; reject: (e: unknown) => void }> = [];
 
-// Single-flight refresh: one refresh call, queued requests replayed on success.
+// Unwrap the API envelope: backend returns { success, data }, so resolve the
+// promise directly to the inner payload and let components read res.assets etc.
+// instead of res.data.data.
 client.interceptors.response.use(
-  (res) => res,
+  (res) => res.data.data,
   async (error) => {
     const original = error.config;
     if (

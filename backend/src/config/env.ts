@@ -11,7 +11,6 @@ const envSchema = z.object({
   CLIENT_URL: z.string().min(1),
   CORS_ORIGINS: z.string().default('http://localhost:5173'),
   ASSET_TAG_PREFIX: z.string().default('AF-'),
-  DEFAULT_CURRENCY: z.string().default('USD'),
   SEED_ADMIN_EMAIL: z.string().min(1).default('admin@assetflow.com'),
   SEED_ADMIN_PASSWORD: z.string().min(8).default('ChangeMe123!'),
   SEED_ADMIN_NAME: z.string().default('System Admin'),

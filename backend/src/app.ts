@@ -23,7 +23,7 @@ export function createApp(): Application {
   app.use(helmet());
   app.use(
     cors({
-      origin: env.CORS_ORIGINS.split(',').map((s) => s.trim()),
+      origin: [...env.CORS_ORIGINS.split(',').map((s) => s.trim()), env.CLIENT_URL],
       credentials: true,
       methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     }),
