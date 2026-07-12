@@ -1,7 +1,6 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
-import mongoSanitize from 'express-mongo-sanitize';
 import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
 import * as Sentry from '@sentry/node';
@@ -30,7 +29,7 @@ export function createApp(): Application {
   );
   app.use(express.json({ limit: '10kb' }));
   app.use(express.urlencoded({ extended: true }));
-  app.use(mongoSanitize());
+  // Parameterized queries prevent injection — no equivalent of mongo-sanitize needed for Postgres.
   app.use(cookieParser);
   if (env.NODE_ENV === 'development') app.use(morgan('dev'));
 

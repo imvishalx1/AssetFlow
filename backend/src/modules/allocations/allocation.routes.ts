@@ -14,7 +14,7 @@ import {
 
 const router = Router();
 
-router.use(roleGuard('Admin', 'Asset Manager', 'Department Head'));
+router.use(roleGuard('Admin', 'AssetManager', 'DepartmentHead'));
 
 router.get('/', asyncHandler(controller.listAllocations));
 router.post('/', validate(allocateSchema), asyncHandler(controller.allocate));
@@ -33,7 +33,7 @@ router.post(
 
 // Transfers are mounted under /transfers.
 const transferRouter = Router();
-transferRouter.use(roleGuard('Admin', 'Asset Manager', 'Department Head'));
+transferRouter.use(roleGuard('Admin', 'AssetManager', 'DepartmentHead'));
 transferRouter.get('/', asyncHandler(controller.listTransfers));
 transferRouter.post(
   '/:id/review',

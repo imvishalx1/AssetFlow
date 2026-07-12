@@ -13,7 +13,7 @@ export const getUser = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const promoteUser = asyncHandler(async (req: Request, res: Response) => {
-  const { role } = req.body as { role: 'Department Head' | 'Asset Manager' };
+  const { role } = req.body as { role: 'DepartmentHead' | 'AssetManager' };
   const user = await service.promoteUser(req.params.id as string, role, req.user?.id);
   res.json({ success: true, data: { user } });
 });

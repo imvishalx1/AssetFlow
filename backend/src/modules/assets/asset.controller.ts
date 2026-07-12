@@ -7,7 +7,7 @@ import { registerAsset, changeAssetStatus } from './asset.service';
 export const listAssets = asyncHandler(async (req: Request, res: Response) => {
   const filter: Record<string, unknown> = {};
   // Department Heads are scoped to their own department's assets.
-  if (req.user?.role === 'Department Head' && req.user.departmentId) {
+  if (req.user?.role === 'DepartmentHead' && req.user.departmentId) {
     filter.departmentId = req.user.departmentId;
   }
   if (req.query.status) filter.status = req.query.status;

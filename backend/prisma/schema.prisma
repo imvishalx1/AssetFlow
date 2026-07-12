@@ -1,0 +1,264 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────────────────────
+
+enum Role {
+  Admin
+  AssetManager
+  DepartmentHead
+  Employee
+}
+
+enum AssetStatus {
+  Available
+  Allocated
+  Reserved
+  UnderMaintenance
+  Lost
+  Retired
+  Disposed
+}
+
+// ─────────────────────────────────────────────────────────────
+// USERS
+// ─────────────────────────────────────────────────────────────
+
+model User {
+  id           String       @id @default(cuid())
+  name         String
+  email        String       @unique
+  passwordHash String
+  role         Role         @default(Employee)
+  departmentId String?
+  department   Department?  @relation(fields: [departmentId], references: [id])
+  status       String       @default("Active")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  allocations Allocation[]
+  bookings    Booking[]
+  maintenance MaintenanceRequest[] @relation("MaintenanceRaisedBy")
+  auditCycles AuditCycle[]
+  activityLogs ActivityLog[]
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  tokenHash String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// DEPARTMENTS
+// ─────────────────────────────────────────────────────────────
+
+model Department {
+  id                 String       @id @default(cuid())
+  name               String
+  parentDepartmentId String?
+  parentDepartment   Department?  @relation("DeptHierarchy", fields: [parentDepartmentId], references: [id])
+  children           Department[] @relation("DeptHierarchy")
+  headUserId         String?
+  isActive           Boolean      @default(true)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  users  User[]
+  assets Asset[]
+}
+
+// ─────────────────────────────────────────────────────────────
+// CATEGORIES
+// ─────────────────────────────────────────────────────────────
+
+model Category {
+  id           String   @id @default(cuid())
+  name         String
+  customFields Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  assets Asset[]
+}
+
+// ─────────────────────────────────────────────────────────────
+// ASSETS
+// ─────────────────────────────────────────────────────────────
+
+model Asset {
+  id              String      @id @default(cuid())
+  tag             String      @unique
+  name            String
+  categoryId      String
+  category        Category    @relation(fields: [categoryId], references: [id])
+  serialNumber    String?
+  acquisitionDate DateTime?
+  acquisitionCost Int         @default(0)
+  condition       String      @default("New")
+  location        String?
+  status          AssetStatus @default(Available)
+  isBookable      Boolean     @default(false)
+  departmentId    String?
+  department      Department? @relation(fields: [departmentId], references: [id])
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  allocations      Allocation[]
+  bookings         Booking[]
+  maintenanceReqs  MaintenanceRequest[]
+  historyEvents    AssetHistoryEvent[]
+  checklistItems   ChecklistItem[]
+}
+
+// ─────────────────────────────────────────────────────────────
+// ASSET HISTORY (append-only event log per asset)
+// ─────────────────────────────────────────────────────────────
+
+model AssetHistoryEvent {
+  id        String   @id @default(cuid())
+  assetId   String
+  asset     Asset    @relation(fields: [assetId], references: [id])
+  eventType String
+  detail    Json?
+  createdAt DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────────────────────
+// ALLOCATIONS
+// ─────────────────────────────────────────────────────────────
+
+model Allocation {
+  id                 String   @id @default(cuid())
+  assetId            String
+  asset              Asset    @relation(fields: [assetId], references: [id])
+  userId             String
+  user               User     @relation(fields: [userId], references: [id])
+  expectedReturnDate DateTime?
+  status             String   @default("Active")
+  checkInNotes       String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Partial unique index (one active allocation per asset) is added as a
+  // raw SQL migration in addition to this Prisma index.
+  @@index([assetId, status])
+}
+
+// ─────────────────────────────────────────────────────────────
+// TRANSFERS
+// ─────────────────────────────────────────────────────────────
+
+model Transfer {
+  id           String   @id @default(cuid())
+  assetId      String
+  fromUserId   String
+  toUserId     String
+  requestedBy  String
+  status       String   @default("Requested")
+  note         String?
+  reviewedBy   String?
+  reviewedAt   DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────
+// BOOKINGS
+// ─────────────────────────────────────────────────────────────
+
+model Booking {
+  id         String   @id @default(cuid())
+  resourceId String
+  asset      Asset    @relation(fields: [resourceId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  title      String
+  startTime  DateTime
+  endTime    DateTime
+  status     String   @default("Upcoming")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([resourceId, startTime, endTime])
+}
+
+// ─────────────────────────────────────────────────────────────
+// MAINTENANCE REQUESTS
+// ─────────────────────────────────────────────────────────────
+
+model MaintenanceRequest {
+  id          String   @id @default(cuid())
+  assetId     String
+  asset       Asset    @relation(fields: [assetId], references: [id])
+  raisedBy    String
+  raiser      User     @relation("MaintenanceRaisedBy", fields: [raisedBy], references: [id])
+  description String
+  priority    String   @default("Medium")
+  photos      String[]
+  status      String   @default("Pending")
+  technician  String?
+  assignedAt  DateTime?
+  resolvedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────
+// AUDIT CYCLES
+// ─────────────────────────────────────────────────────────────
+
+model AuditCycle {
+  id        String   @id @default(cuid())
+  name      String
+  scopeType String
+  scopeValue String
+  dateRange Json
+  auditors  String[]
+  status    String   @default("Open")
+  locked    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  checklistItems ChecklistItem[]
+  createdBy      String?
+  creator        User?    @relation(fields: [createdBy], references: [id])
+}
+
+model ChecklistItem {
+  id           String  @id @default(cuid())
+  auditCycleId String
+  auditCycle   AuditCycle @relation(fields: [auditCycleId], references: [id])
+  assetId      String
+  asset        Asset   @relation(fields: [assetId], references: [id])
+  result       String?
+  note         String?
+}
+
+// ─────────────────────────────────────────────────────────────
+// ACTIVITY LOGS (immutable — no update/delete routes exposed)
+// ─────────────────────────────────────────────────────────────
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id])
+  action    String
+  target    String
+  meta      Json?
+  createdAt DateTime @default(now())
+}

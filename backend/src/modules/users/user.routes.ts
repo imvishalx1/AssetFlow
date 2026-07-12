@@ -10,7 +10,7 @@ import { promoteSchema, updateUserSchema } from './user.schema';
 const router = Router();
 
 // Employee Directory is visible to management roles.
-router.use(roleGuard('Admin', 'Asset Manager', 'Department Head'));
+router.use(roleGuard('Admin', 'AssetManager', 'DepartmentHead'));
 
 router.get('/', asyncHandler(controller.listUsers));
 router.get('/:id', validate(z.object({ id: mongoId }), 'params'), asyncHandler(controller.getUser));

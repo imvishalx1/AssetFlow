@@ -13,6 +13,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
     "@sentry/node": "^10.65.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
@@ -24,8 +26,10 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.7.4",
     "morgan": "^1.11.0",
-    "nodemailer": "^9.0.3",
     "node-cron": "^4.6.0",
+    "nodemailer": "^9.0.3",
+    "pg": "^8.22.0",
+    "prisma": "^7.8.0",
     "socket.io": "^4.8.3",
     "winston": "^3.19.0",
     "zod": "^4.4.3"
@@ -39,6 +43,7 @@
     "@types/node": "^26.1.1",
     "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^8.0.1",
+    "@types/pg": "^8.20.0",
     "eslint": "^9.0.0",
     "tsx": "^4.23.0",
     "typescript": "^5.9.3",

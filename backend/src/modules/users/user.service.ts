@@ -7,7 +7,7 @@ import { logActivity } from '../activityLogs/activityLog.service';
 // Department Heads are scoped to their own department only.
 export async function listUsers(role?: string, departmentId?: string | null) {
   const filter: Record<string, unknown> = {};
-  if (role === 'Department Head' && departmentId) {
+  if (role === 'DepartmentHead' && departmentId) {
     filter.departmentId = departmentId;
   }
   return User.find(filter).populate('departmentId', 'name').select('-passwordHash');
@@ -20,7 +20,7 @@ export async function getUserById(id: string) {
 }
 
 // Admin-only role promotion (Pillar 1). Only to Department Head / Asset Manager.
-export async function promoteUser(id: string, role: 'Department Head' | 'Asset Manager', actorId?: string) {
+export async function promoteUser(id: string, role: 'DepartmentHead' | 'AssetManager', actorId?: string) {
   if (!mongoId.safeParse(id).success) throw new AppError(404, 'NOT_FOUND', 'User not found');
   const user = await User.findByIdAndUpdate(id, { role }, { new: true }).select('-passwordHash');
   if (!user) throw new AppError(404, 'NOT_FOUND', 'User not found');

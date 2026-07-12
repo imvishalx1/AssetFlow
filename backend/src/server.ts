@@ -14,7 +14,7 @@ export function initSockets(server: import('http').Server): SocketServer {
     },
   });
 
-  // Clients join role-based rooms (e.g. 'Asset Manager') so the server can
+  // Clients join role-based rooms (e.g. 'AssetManager') so the server can
   // target real-time alerts by role.
   io.on('connection', (socket) => {
     socket.on('join', (room: string) => {

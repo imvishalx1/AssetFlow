@@ -10,7 +10,7 @@ import { createAuditSchema, auditItemSchema } from './audit.schema';
 const router = Router();
 
 // Audits are Admin / Asset Manager only.
-router.use(roleGuard('Admin', 'Asset Manager'));
+router.use(roleGuard('Admin', 'AssetManager'));
 
 router.get('/', asyncHandler(controller.listAudits));
 router.get('/:id', validate(z.object({ id: mongoId }), 'params'), asyncHandler(controller.getAudit));

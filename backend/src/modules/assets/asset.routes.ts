@@ -10,7 +10,7 @@ import { createAssetSchema, updateAssetStatusSchema } from './asset.schema';
 const router = Router();
 
 // Asset register is readable by management roles (Employees use their own allocation view).
-router.use(roleGuard('Admin', 'Asset Manager', 'Department Head'));
+router.use(roleGuard('Admin', 'AssetManager', 'DepartmentHead'));
 
 router.get('/', asyncHandler(controller.listAssets));
 router.get('/:id', validate(z.object({ id: mongoId }), 'params'), asyncHandler(controller.getAsset));
@@ -18,13 +18,13 @@ router.get('/:id', validate(z.object({ id: mongoId }), 'params'), asyncHandler(c
 // Creation + lifecycle changes are Admin / Asset Manager only.
 router.post(
   '/',
-  roleGuard('Admin', 'Asset Manager'),
+  roleGuard('Admin', 'AssetManager'),
   validate(createAssetSchema),
   asyncHandler(controller.createAsset),
 );
 router.patch(
   '/:id/status',
-  roleGuard('Admin', 'Asset Manager'),
+  roleGuard('Admin', 'AssetManager'),
   validate(z.object({ id: mongoId }), 'params'),
   validate(updateAssetStatusSchema),
   asyncHandler(controller.updateAssetStatus),

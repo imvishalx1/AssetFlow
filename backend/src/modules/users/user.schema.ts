@@ -4,7 +4,7 @@ import { mongoId } from '../../utils/validators';
 // Promotion is restricted to Department Head / Asset Manager only (Pillar 1:
 // no self-elevation, no promotion to Admin via the API).
 export const promoteSchema = z.object({
-  role: z.enum(['Department Head', 'Asset Manager']),
+  role: z.enum(['DepartmentHead', 'AssetManager']),
 });
 
 export const updateUserSchema = z.object({

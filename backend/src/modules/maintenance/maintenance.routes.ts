@@ -17,14 +17,14 @@ router.get('/:id', validate(z.object({ id: mongoId }), 'params'), asyncHandler(c
 // Approval + resolution are Asset Manager (and Admin) only (PRD FR-7.2, Pillar 1).
 router.post(
   '/:id/approve',
-  roleGuard('Admin', 'Asset Manager'),
+  roleGuard('Admin', 'AssetManager'),
   validate(z.object({ id: mongoId }), 'params'),
   validate(approveSchema),
   asyncHandler(controller.approveMaintenance),
 );
 router.post(
   '/:id/resolve',
-  roleGuard('Admin', 'Asset Manager'),
+  roleGuard('Admin', 'AssetManager'),
   validate(z.object({ id: mongoId }), 'params'),
   validate(resolveSchema),
   asyncHandler(controller.resolveMaintenance),

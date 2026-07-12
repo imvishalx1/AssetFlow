@@ -12,7 +12,7 @@ import {
 
 export const listAllocations = asyncHandler(async (req: Request, res: Response) => {
   const filter: Record<string, unknown> = {};
-  if (req.user?.role === 'Department Head' && req.user.departmentId) {
+  if (req.user?.role === 'DepartmentHead' && req.user.departmentId) {
     filter.departmentId = req.user.departmentId;
   }
   if (req.query.status) filter.status = req.query.status;

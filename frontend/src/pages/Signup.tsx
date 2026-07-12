@@ -22,8 +22,8 @@ export function Signup() {
       if (isMockMode) {
         await login(email, password); // dummy Admin session
       } else {
-        const { data } = await client.post('/auth/signup', { name, email, password });
-        tokenStore.set(data.data.accessToken);
+        const result = await client.post('/auth/signup', { name, email, password }) as { accessToken: string };
+        tokenStore.set(result.accessToken);
         await refreshUser();
       }
       navigate('/dashboard');
