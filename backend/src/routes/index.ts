@@ -5,6 +5,7 @@ import analyticsRoutes from '../modules/analytics/analytics.routes';
 import activityLogRoutes from '../modules/activityLogs/activityLog.routes';
 import departmentRoutes from '../modules/departments/department.routes';
 import categoryRoutes from '../modules/categories/category.routes';
+import assetRoutes from '../modules/assets/asset.routes';
 
 const router = Router();
 
@@ -14,8 +15,7 @@ router.use('/analytics', analyticsRoutes);
 router.use('/activity-logs', activityLogRoutes);
 router.use('/departments', departmentRoutes);
 router.use('/categories', categoryRoutes);
-
-// Domain routes being ported to Prisma next:
+router.use('/assets', assetRoutes);
 // import departmentRoutes from '../modules/departments/department.routes';
 // import categoryRoutes from '../modules/categories/category.routes';
 // import userRoutes from '../modules/users/user.routes';

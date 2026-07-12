@@ -3,17 +3,17 @@ import { z } from 'zod';
 import { asyncHandler } from '../../utils/asyncHandler';
 import { validate } from '../../middleware/validate';
 import { roleGuard } from '../../middleware/roleGuard';
-import { mongoId } from '../../utils/validators';
+import { entityId } from '../../utils/validators';
 import * as controller from './asset.controller';
 import { createAssetSchema, updateAssetStatusSchema } from './asset.schema';
 
 const router = Router();
 
-// Asset register is readable by management roles (Employees use their own allocation view).
-router.use(roleGuard('Admin', 'AssetManager', 'DepartmentHead'));
+// Asset register is readable by all authenticated users.
+router.use(roleGuard('Admin', 'AssetManager', 'DepartmentHead', 'Employee'));
 
 router.get('/', asyncHandler(controller.listAssets));
-router.get('/:id', validate(z.object({ id: mongoId }), 'params'), asyncHandler(controller.getAsset));
+router.get('/:id', validate(z.object({ id: entityId }), 'params'), asyncHandler(controller.getAsset));
 
 // Creation + lifecycle changes are Admin / Asset Manager only.
 router.post(
@@ -25,7 +25,7 @@ router.post(
 router.patch(
   '/:id/status',
   roleGuard('Admin', 'AssetManager'),
-  validate(z.object({ id: mongoId }), 'params'),
+  validate(z.object({ id: entityId }), 'params'),
   validate(updateAssetStatusSchema),
   asyncHandler(controller.updateAssetStatus),
 );

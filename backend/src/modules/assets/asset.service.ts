@@ -1,53 +1,77 @@
-import mongoose from 'mongoose';
-import { Asset } from './asset.model';
-import { generateAssetTag } from '../../utils/assetTagGenerator';
+import { prisma } from '../../lib/prisma';
 import { validateStateTransition } from '../../services/stateMachine';
 import { logActivity } from '../activityLogs/activityLog.service';
 import { AppError } from '../../utils/AppError';
 
-// Registers an asset inside a transaction: auto-tag generation and the initial
-// document write are atomic, closing the read-max-then-increment race.
+const TAG_PREFIX = 'AF-';
+
+export async function generateAssetTag(): Promise<string> {
+  const result = await prisma.asset.aggregate({ _max: { tagNumber: true } });
+  const nextNumber = (result._max.tagNumber ?? 0) + 1;
+  return `${TAG_PREFIX}${String(nextNumber).padStart(4, '0')}`;
+}
+
 export async function registerAsset(
   input: Record<string, unknown>,
   actorId?: string,
 ) {
-  const session = await mongoose.startSession();
-  try {
-    return await session.withTransaction(async () => {
-      const tag = await generateAssetTag(session);
-      // Defensive extraction of trailing digits regardless of prefix format
-      // (e.g. "AF-0001" or "FOO0001"), avoiding NaN from split('-')[1].
-      const tagMatch = tag.match(/(\d+)\s*$/);
-      const tagNumber = tagMatch ? parseInt(tagMatch[1], 10) : 0;
-      const asset = new Asset({
-        ...input,
-        tag,
-        tagNumber,
-        status: 'Available',
-        history: [{ type: 'Registered', by: actorId, at: new Date() }],
-      });
-      await asset.save({ session });
-      await logActivity('ASSET_REGISTER', `asset:${asset._id}`, actorId, { tag: asset.tag });
-      return asset;
-    });
-  } finally {
-    await session.endSession();
-  }
+  const tag = await generateAssetTag();
+  const tagMatch = tag.match(/(\d+)\s*$/);
+  const tagNumber = tagMatch ? parseInt(tagMatch[1], 10) : 0;
+
+  const asset = await prisma.asset.create({
+    data: {
+      tag,
+      tagNumber,
+      name: input.name as string,
+      categoryId: input.categoryId as string,
+      serialNumber: (input.serialNumber as string) ?? null,
+      acquisitionDate: input.acquisitionDate ? new Date(input.acquisitionDate as string) : null,
+      acquisitionCost: (input.acquisitionCost as number) ?? 0,
+      condition: (input.condition as string) ?? 'New',
+      location: (input.location as string) ?? null,
+      status: 'Available',
+      isBookable: (input.isBookable as boolean) ?? false,
+      departmentId: (input.departmentId as string) ?? null,
+    },
+  });
+
+  // Write initial history event
+  await prisma.assetHistoryEvent.create({
+    data: {
+      assetId: asset.id,
+      eventType: 'Registered',
+      detail: { by: actorId },
+    },
+  });
+
+  await logActivity('ASSET_REGISTER', `asset:${asset.id}`, actorId, { tag: asset.tag });
+  return asset;
 }
 
-// Lifecycle state change with 7-stage guard (Pillar 3).
 export async function changeAssetStatus(
   assetId: string,
   nextStatus: string,
   note: string | undefined,
   actorId?: string,
 ) {
-  const asset = await Asset.findById(assetId);
+  const asset = await prisma.asset.findUnique({ where: { id: assetId } });
   if (!asset) throw new AppError(404, 'NOT_FOUND', 'Asset not found');
-  validateStateTransition(asset.status, nextStatus as never);
-  asset.status = nextStatus as never;
-  asset.history.push({ type: 'Status', note, by: actorId, at: new Date() });
-  await asset.save();
-  await logActivity('ASSET_STATUS', `asset:${asset._id}`, actorId, { status: nextStatus });
-  return asset;
+  validateStateTransition(asset.status as never, nextStatus as never);
+
+  const updated = await prisma.asset.update({
+    where: { id: assetId },
+    data: { status: nextStatus as never },
+  });
+
+  await prisma.assetHistoryEvent.create({
+    data: {
+      assetId,
+      eventType: 'Status',
+      detail: { note, by: actorId, toStatus: nextStatus },
+    },
+  });
+
+  await logActivity('ASSET_STATUS', `asset:${assetId}`, actorId, { status: nextStatus });
+  return updated;
 }

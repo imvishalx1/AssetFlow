@@ -103,6 +103,7 @@ model Category {
 model Asset {
   id              String      @id @default(cuid())
   tag             String      @unique
+  tagNumber       Int
   name            String
   categoryId      String
   category        Category    @relation(fields: [categoryId], references: [id])

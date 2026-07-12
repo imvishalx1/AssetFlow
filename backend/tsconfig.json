@@ -18,5 +18,5 @@
     "types": ["node"]
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist", "src/modules/assets", "src/modules/allocations", "src/modules/audits", "src/modules/bookings", "src/modules/maintenance", "src/modules/users", "src/services/cron.service.ts", "src/services/email.service.ts", "src/services/conflictEngine.ts", "src/scripts/**", "src/utils/assetTagGenerator.ts"]
+  "exclude": ["node_modules", "dist", "src/modules/allocations", "src/modules/audits", "src/modules/bookings", "src/modules/maintenance", "src/modules/users", "src/services/cron.service.ts", "src/services/email.service.ts", "src/services/conflictEngine.ts", "src/scripts/**", "src/utils/assetTagGenerator.ts"]
 }

@@ -1,3 +1,5 @@
 import { z } from 'zod';
 
-export const mongoId = z.string().regex(/^[a-f\d]{24}$/i, 'Invalid id');
+// General-purpose ID validator — accepts any non-empty string (CUID, UUID, etc.)
+export const entityId = z.string().min(1, 'ID is required');
+export { entityId as mongoId };
