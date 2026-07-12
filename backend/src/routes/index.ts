@@ -3,17 +3,17 @@ import { requireAuth } from '../middleware/requireAuth';
 import authRoutes from '../modules/auth/auth.routes';
 import analyticsRoutes from '../modules/analytics/analytics.routes';
 import activityLogRoutes from '../modules/activityLogs/activityLog.routes';
+import departmentRoutes from '../modules/departments/department.routes';
+import categoryRoutes from '../modules/categories/category.routes';
 
 const router = Router();
 
-// Public auth routes — no authentication required.
 router.use('/auth', authRoutes);
-
-// All remaining routes require a valid access token.
 router.use(requireAuth);
-
 router.use('/analytics', analyticsRoutes);
 router.use('/activity-logs', activityLogRoutes);
+router.use('/departments', departmentRoutes);
+router.use('/categories', categoryRoutes);
 
 // Domain routes being ported to Prisma next:
 // import departmentRoutes from '../modules/departments/department.routes';
