@@ -13,6 +13,7 @@ import { Maintenance } from './pages/Maintenance';
 import { Audits } from './pages/Audits';
 import { Reports } from './pages/Reports';
 import { Activity } from './pages/Activity';
+import { LandingPage } from './pages/LandingPage';
 
 // Management roles per the blueprint (Pillar 1: no self-elevation).
 const MGMT = ['Admin', 'Asset Manager', 'Department Head'] as const;
@@ -21,6 +22,7 @@ const ADMIN_MGR = ['Admin', 'Asset Manager'] as const;
 export default function App() {
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route

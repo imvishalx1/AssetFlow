@@ -31,11 +31,10 @@ export function Topbar({ onMenu, showToggle, menuExpanded, rotated }: TopbarProp
     <header className="topbar">
       {onMenu && showToggle && (
         <button
-          className={`btn-ghost btn-sm hamburger ${rotated ? 'rotated' : ''}`}
+          className={`btn btn-ghost btn-sm hamburger ${rotated ? 'rotated' : ''}`}
           onClick={onMenu}
           aria-expanded={menuExpanded}
           aria-label="Toggle sidebar"
-          style={{ marginRight: 8 }}
         >
           <Menu size={16} />
         </button>
@@ -45,7 +44,7 @@ export function Topbar({ onMenu, showToggle, menuExpanded, rotated }: TopbarProp
       {user && <span className="role-badge">{user.role}</span>}
       {isMockMode && <span className="demo-badge">DEMO</span>}
       {user && <span style={{ fontWeight: 600 }}>{user.name}</span>}
-      <button className="logout" onClick={() => logout()}>
+      <button className="btn btn-ghost btn-sm" onClick={() => logout()}>
         Logout
       </button>
     </header>
