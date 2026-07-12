@@ -28,31 +28,71 @@ export function Signup() {
       }
       navigate('/dashboard');
     } catch (err: unknown) {
-      const code = (err as { response?: { data?: { error?: { code?: string } } } })?.response?.data?.error?.code;
-      const message = (err as { response?: { data?: { error?: { message?: string } } } })?.response?.data?.error?.message;
-      setError(code === 'SELF_ELEVATION_DENIED' ? 'Self-elevation is not allowed. You can only register as Employee.' : message ?? 'Signup failed');
+      const code = (err as { response?: { data?: { error?: { code?: string } } } })?.response?.data
+        ?.error?.code;
+      const message = (err as { response?: { data?: { error?: { message?: string } } } })?.response
+        ?.data?.error?.message;
+      setError(
+        code === 'SELF_ELEVATION_DENIED'
+          ? 'Self-elevation is not allowed. You can only register as Employee.'
+          : message ?? 'Signup failed',
+      );
     } finally {
       setBusy(false);
     }
   };
 
   return (
-    <div className="auth-card">
-      <h1>Create your account</h1>
-      <form onSubmit={onSubmit}>
-        <label htmlFor="signup-name">Full name</label>
-        <input id="signup-name" placeholder="Full name" value={name} onChange={(e) => setName(e.target.value)} required />
+    <div className="auth-split">
+      <div className="auth-panel">
+        <h1>AssetFlow</h1>
+        <p className="value-prop">
+          Join your organization's asset workspace. Accounts start as Employee — admins promote
+          trusted members when needed.
+        </p>
+      </div>
+      <div className="auth-form-col">
+        <div className="auth-card">
+          <h1>Create your account</h1>
+          <form onSubmit={onSubmit}>
+            <label htmlFor="signup-name">Full name</label>
+            <input
+              id="signup-name"
+              placeholder="Full name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
 
-        <label htmlFor="signup-email">Email</label>
-        <input id="signup-email" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <label htmlFor="signup-email">Email</label>
+            <input
+              id="signup-email"
+              type="email"
+              placeholder="you@company.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
 
-        <label htmlFor="signup-password">Password</label>
-        <input id="signup-password" type="password" placeholder="Password (min 8 chars)" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <label htmlFor="signup-password">Password</label>
+            <input
+              id="signup-password"
+              type="password"
+              placeholder="Min 8 characters"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
 
-        {error && <p className="error">{error}</p>}
-        <button type="submit" disabled={busy}>Sign up</button>
-      </form>
-      <Link to="/login">Already have an account? Sign in</Link>
+            {error && <p className="error">{error}</p>}
+            <button type="submit" disabled={busy}>
+              Sign up
+            </button>
+            <p className="note">New accounts start as Employee — admins can promote you later.</p>
+          </form>
+          <Link to="/login">Already have an account? Sign in</Link>
+        </div>
+      </div>
     </div>
   );
 }

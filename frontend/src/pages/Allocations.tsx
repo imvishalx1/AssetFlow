@@ -2,6 +2,10 @@ import { FormEvent, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { client } from '../lib/api/client';
 import { useAuth } from '../auth/AuthProvider';
+import { DataTable, Column } from '../components/DataTable';
+import { StatusBadge } from '../components/StatusBadge';
+import { Modal } from '../components/Modal';
+import { Skeleton } from '../components/Skeleton';
 
 interface Allocation {
   _id: string;
@@ -106,71 +110,80 @@ export function Allocations() {
     }
   };
 
+  const columns: Column<Allocation>[] = [
+    {
+      key: 'asset',
+      header: 'Asset',
+      render: (a) => (
+        <span>
+          <span className="mono">{a.assetId?.tag ?? '—'}</span> {a.assetId?.name ?? ''}
+        </span>
+      ),
+    },
+    { key: 'holder', header: 'Holder', render: (a) => a.userId?.name ?? '—' },
+    { key: 'status', header: 'Status', render: (a) => <StatusBadge status={a.status} /> },
+    {
+      key: 'return',
+      header: 'Expected Return',
+      render: (a) => (a.expectedReturnDate ? new Date(a.expectedReturnDate).toLocaleDateString() : '—'),
+    },
+  ];
+
   return (
-    <div className="placeholder">
-      <h2>Allocations &amp; Transfers</h2>
-
-      <form onSubmit={onSubmit} style={{ display: 'grid', gap: 8, maxWidth: 420, marginBottom: 16 }}>
-        <input
-          placeholder="Asset ID (e.g. 665f...)"
-          value={assetId}
-          onChange={(e) => setAssetId(e.target.value)}
-          required
-        />
-        <input placeholder="User ID (optional, defaults to you)" value={userId} onChange={(e) => setUserId(e.target.value)} />
-        <button className="btn" type="submit" disabled={allocateMutation.isPending}>
-          {allocateMutation.isPending ? 'Allocating…' : 'Allocate Asset'}
-        </button>
-        {error && <p className="error">{error}</p>}
-      </form>
-
-      {conflict && (
-        <div className="modal-backdrop">
-          <div className="modal">
-            <h3>Asset Already Allocated</h3>
-            <p>
-              This asset is currently held by <strong>{conflict.holder}</strong>. You cannot allocate it
-              directly — initiate a Transfer Request instead.
-            </p>
-            {transferMsg && <p className="error">{transferMsg}</p>}
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button className="btn-ghost" onClick={() => setConflict(null)} disabled={transferBusy}>
-                Cancel
-              </button>
-              <button className="btn" onClick={onInitiateTransfer} disabled={transferBusy}>
-                {transferBusy ? 'Submitting…' : 'Initiate Transfer Request'}
-              </button>
-            </div>
+    <div className="grid" style={{ gap: 24 }}>
+      <div className="card">
+        <h2 style={{ marginTop: 0 }}>Allocate Asset</h2>
+        <form onSubmit={onSubmit} className="form-grid">
+          <div className="field full">
+            <label>Asset ID</label>
+            <input placeholder="Asset ID (e.g. 665f…)" value={assetId} onChange={(e) => setAssetId(e.target.value)} required />
           </div>
-        </div>
-      )}
+          <div className="field full">
+            <label>User ID (optional — defaults to you)</label>
+            <input placeholder="User ID" value={userId} onChange={(e) => setUserId(e.target.value)} />
+          </div>
+          <div className="field full">
+            <button className="btn" type="submit" disabled={allocateMutation.isPending}>
+              {allocateMutation.isPending ? 'Allocating…' : 'Allocate Asset'}
+            </button>
+            {error && <p className="error">{error}</p>}
+          </div>
+        </form>
+      </div>
 
-      {isLoading ? (
-        <p>Loading allocations…</p>
-      ) : (
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Asset</th>
-              <th>Holder</th>
-              <th>Status</th>
-              <th>Expected Return</th>
-            </tr>
-          </thead>
-          <tbody>
-            {allocations?.map((a) => (
-              <tr key={a._id}>
-                <td>
-                  {a.assetId?.tag ?? '—'} {a.assetId?.name ?? ''}
-                </td>
-                <td>{a.userId?.name ?? '—'}</td>
-                <td>{a.status}</td>
-                <td>{a.expectedReturnDate ? new Date(a.expectedReturnDate).toLocaleDateString() : '—'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <div className="card" style={{ padding: 0 }}>
+        <div style={{ padding: 16 }}>
+          <h2 style={{ marginTop: 0 }}>Active &amp; Recent Allocations</h2>
+          {isLoading ? (
+            <Skeleton lines={5} />
+          ) : (
+            <DataTable columns={columns} data={allocations ?? []} emptyText="No allocations yet." />
+          )}
+        </div>
+      </div>
+
+      <Modal
+        open={!!conflict}
+        onClose={() => setConflict(null)}
+        title="Asset Already In Use"
+        banner={{ tone: 'gold', text: 'Allocation conflict' }}
+        footer={
+          <>
+            <button className="btn-ghost" onClick={() => setConflict(null)} disabled={transferBusy}>
+              Cancel
+            </button>
+            <button className="btn" onClick={onInitiateTransfer} disabled={transferBusy}>
+              {transferBusy ? 'Submitting…' : 'Initiate Transfer Request'}
+            </button>
+          </>
+        }
+      >
+        <p>
+          This asset is currently held by <strong>{conflict?.holder}</strong>. You cannot allocate it
+          directly — initiate a Transfer Request instead and the holder will be notified.
+        </p>
+        {transferMsg && <p className="error">{transferMsg}</p>}
+      </Modal>
     </div>
   );
 }
