@@ -74,7 +74,7 @@ export function Sidebar({ rail, mobile, open, onNavigate, onMenu, showToggle }: 
       <div className="sidebar-head">
         {showToggle && (
           <button
-            className={`btn-ghost btn-sm hamburger ${rail ? 'rotated' : ''}`}
+            className={`btn btn-ghost btn-sm hamburger ${rail ? 'rotated' : ''}`}
             onClick={onMenu}
             aria-expanded={!rail}
             aria-label="Toggle sidebar"
@@ -83,8 +83,8 @@ export function Sidebar({ rail, mobile, open, onNavigate, onMenu, showToggle }: 
           </button>
         )}
         <div className="brand">
+          <img className="brand-logo" src="/logo.svg" alt="AssetFlow" />
           <span className="brand-full">AssetFlow</span>
-          <span className="brand-mark">A</span>
         </div>
       </div>
       <nav aria-label="Main navigation">

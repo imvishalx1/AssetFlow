@@ -92,7 +92,7 @@ export function Maintenance() {
                       {col === 'Pending' && canApprove && (
                         <>
                           <button className="btn-sm btn" onClick={() => update.mutate({ id: m._id, status: nextStatus[col] })}><Check size={14} /> Approve</button>
-                          <button className="btn-sm btn-ghost" onClick={() => reject.mutate(m._id)}><X size={14} /> Reject</button>
+                          <button className="btn-sm btn-danger" onClick={() => reject.mutate(m._id)}><X size={14} /> Reject</button>
                         </>
                       )}
                       {col !== 'Pending' && (

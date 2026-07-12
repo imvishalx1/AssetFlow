@@ -187,7 +187,7 @@ export function Assets() {
           <div className="drawer">
             <div className="row-between">
               <h3 style={{ margin: 0 }}>{selected.name}</h3>
-              <button className="btn-ghost btn-sm" onClick={() => setSelected(null)}><X size={16} /></button>
+              <button className="btn-icon btn-sm" aria-label="Close" onClick={() => setSelected(null)}><X size={16} /></button>
             </div>
             <p className="mono">{selected.tag} · <StatusBadge status={selected.status} /></p>
             <div className="row" style={{ gap: 16, color: 'var(--text-secondary)' }}>

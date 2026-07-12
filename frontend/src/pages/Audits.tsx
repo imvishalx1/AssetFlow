@@ -123,7 +123,7 @@ export function Audits() {
         footer={
           <>
             <button className="btn-ghost" onClick={() => setConfirmClose(null)}>Cancel</button>
-            <button className="btn" disabled={closeCycle.isPending} onClick={() => confirmClose && closeCycle.mutate(confirmClose)}>
+            <button className="btn btn-danger" disabled={closeCycle.isPending} onClick={() => confirmClose && closeCycle.mutate(confirmClose)}>
               {closeCycle.isPending ? 'Closing…' : 'Close & Lock'}
             </button>
           </>
