@@ -119,6 +119,9 @@ dist
 # Firebase cache directory
 .firebase/
 
+# Firebase Functions build output
+functions/lib/
+
 # TernJS port file
 .tern-port
 
